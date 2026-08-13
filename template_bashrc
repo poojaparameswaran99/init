@@ -1,0 +1,55 @@
+# .bashrc  —  Soderling Lab template
+
+netid=$(whoami)
+USERDIR=/hpc/home/$USER
+#module load Anaconda3/2021.05
+export MAMBA_EXE=$HOME/.local/bin/micromamba
+PATH="$HOME/.local/bin:${PATH}"
+export MAMBA_ROOT_PREFIX=/hpc/group/soderlinglab/python_envs/micromamba  # shared group envs
+eval "$(micromamba shell hook --shell bash)"
+
+
+# >>> General Aliases <<<
+alias ll='ls -la'
+alias gs='git status'
+alias gc='git commit -m'
+alias gp='git push'
+
+
+# >>> GitHub Configuration <<<
+# Set your own name/email once (uncomment and edit):
+# git config --global user.name "your-github-username"
+# git config --global user.email "you@example.com"
+# git config --global init.defaultBranch main
+# git config --global color.ui auto
+# git config --global credential.helper 'cache --timeout=3600'
+
+# Function to quickly create and push a new branch
+function gbranch() {
+    git checkout -b "$1"
+    git push -u origin "$1"
+}
+
+# >>> Custom Environment Variables <<<
+# Cache large ML models on scratch (per-user).
+export TORCH_HOME="/cwork/$USER/tools"
+
+parse_git_branch() {
+  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+
+PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+
+export SSL_CERT_FILE=$(python -c "import certifi; print(certifi.where())" 2>/dev/null)
+
+source /hpc/group/soderlinglab/init/init_bashscript.sh
+
+alias mm='micromamba'
+alias q="squeue --user=$USER"
+
+REMOVE_SLURM_ENVVAR() {
+  for var in $(env | grep '^SLURM' | awk -F= '{print $1}'); do
+    unset $var
+  done
+}
+export -f REMOVE_SLURM_ENVVAR
